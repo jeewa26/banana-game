@@ -12,6 +12,7 @@ foreach ($users as $user) {
     $username = $user['username'];
     $plainPassword = $user['password'];
     
+
     $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
     
     $stmt = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");

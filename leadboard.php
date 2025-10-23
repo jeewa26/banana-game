@@ -15,6 +15,7 @@ $sql = "SELECT users.username, scores.score, scores.difficulty, scores.created_a
 
 $result = $conn->query($sql);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

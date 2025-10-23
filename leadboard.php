@@ -88,7 +88,7 @@ $result = $conn->query($sql);
     </div>
 
     <div class="nav-links">
-      <a href="dashboard.php">← Back to Dashboard</a>
+      <a href="dashboard.php">←  Back to Dashboard</a>
     </div>
   </div>
 </body>

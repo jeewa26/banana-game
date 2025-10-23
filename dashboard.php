@@ -7,38 +7,100 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+$username = $_SESSION['username'];
+
+$stmt = $conn->prepare("SELECT id FROM users WHERE username=?");
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$user_id = $user['id'];
 
 $stmt = $conn->prepare("SELECT difficulty, score, created_at FROM scores WHERE user_id=? ORDER BY created_at DESC LIMIT 5");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$result = $stmt->get_result();
+$scores = $stmt->get_result();
+
+$stmt = $conn->prepare("SELECT COUNT(*) as total_games, MAX(score) as best_score, AVG(score) as avg_score FROM scores WHERE user_id=?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stats = $stmt->get_result()->fetch_assoc();
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Puzzle Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Welcome, <?php echo $_SESSION['username']; ?> 🎉</h2>
-  <h3>Select Game Difficulty:</h3>
-  <form action="game.php" method="get">
-    <select name="difficulty">
-      <option value="easy">Easy</option>
-      <option value="medium">Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-    <button type="submit">Start Game</button>
-  </form>
+  <div class="container">
+    <div class="welcome-header">
+      <h1>🧩 Puzzle Game Dashboard</h1>
+      <h2>Welcome back, <?php echo htmlspecialchars($username); ?>! 👋</h2>
+    </div>
 
-  <h3>Your Past Scores</h3>
-  <ul>
-    <?php while ($row = $result->fetch_assoc()) { ?>
-      <li><?php echo $row['difficulty'] . " - " . $row['score'] . " points (" . $row['created_at'] . ")"; ?></li>
-    <?php } ?>
-  </ul>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value"><?php echo $stats['total_games'] ?? 0; ?></div>
+        <div class="stat-label">Games Played</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><?php echo $stats['best_score'] ?? 0; ?></div>
+        <div class="stat-label">Best Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><?php echo $stats['avg_score'] ? round($stats['avg_score']) : 0; ?></div>
+        <div class="stat-label">Average Score</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>🎮 Choose Difficulty</h3>
+      <form action="game.php" method="get">
+        <select name="difficulty" required>
+          <option value="easy">Easy - 60 seconds</option>
+          <option value="medium">Medium - 40 seconds</option>
+          <option value="hard">Hard - 20 seconds</option>
+        </select>
+        <button type="submit" style="width: 100%; margin-top: 10px;">Start Game 🚀</button>
+      </form>
+    </div>
 
-  <a href="scoreboard.php">View Leaderboard</a> | 
-  <a href="index.php">Logout</a>
+    <div class="card">
+      <h3>📊 Your Last 5 Scores</h3>
+      <?php if ($scores->num_rows > 0) { ?>
+        <table>
+          <tr>
+            <th>Difficulty</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+          <?php while ($row = $scores->fetch_assoc()) { 
+            $difficultyClass = 'difficulty-' . strtolower($row['difficulty']);
+          ?>
+            <tr>
+              <td>
+                <span class="difficulty-badge <?php echo $difficultyClass; ?>">
+                  <?php echo ucfirst($row['difficulty']); ?>
+                </span>
+              </td>
+              <td><strong><?php echo $row['score']; ?></strong></td>
+              <td><?php echo date('M d, Y H:i', strtotime($row['created_at'])); ?></td>
+            </tr>
+          <?php } ?>
+        </table>
+      <?php } else { ?>
+        <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+          No games played yet. Start your first game! 🎯
+        </p>
+      <?php } ?>
+    </div>
+
+    <div class="nav-links">
+      <a href="leadboard.php">🏆 View Leaderboard</a> | 
+      <a href="logout.php">🚪 Logout</a>
+    </div>
+  </div>
 </body>
 </html>

@@ -3,7 +3,6 @@ include("db.php");
 
 echo "<h2>Password Reset Script</h2>";
 
-// Define users with their new passwords
 $users = [
     ["username" => "student1", "password" => "pass123"],
     ["username" => "student2", "password" => "1234"]
@@ -13,10 +12,8 @@ foreach ($users as $user) {
     $username = $user['username'];
     $plainPassword = $user['password'];
     
-    // Hash the password properly
     $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
     
-    // Update the user's password
     $stmt = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
     $stmt->bind_param("ss", $hashedPassword, $username);
     

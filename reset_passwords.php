@@ -11,6 +11,7 @@ $users = [
 foreach ($users as $user) {
     $username = $user['username'];
     $plainPassword = $user['password'];
+    
 
     $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
     
